@@ -1,0 +1,28 @@
+import { readFile, writeFile, rename } from 'node:fs/promises';
+const input=process.argv[2];
+if(!input) throw new Error('Informe o HTML do catálogo público Mercor.');
+const html=await readFile(input,'utf8');
+const match=html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+if(!match) throw new Error('Estrutura da página mudou. Catálogo preservado.');
+const page=JSON.parse(match[1]);
+const queries=page.props?.pageProps?.dehydratedState?.queries;
+const listings=queries?.find(q=>Array.isArray(q.state?.data?.listings))?.state.data.listings;
+if(!listings?.length) throw new Error('Nenhum anúncio encontrado. Catálogo preservado.');
+const units={'hourly':'hour','yearly':'year','per-task':'task','one-time':'one-time'};
+const jobs=listings.filter(j=>j.status==='active' && !j.deletedAt && !j.isPrivate && !j.disableApplications).map(j=>{
+  if(!j.listingId || !j.title || !(j.payRateFrequency in units)) throw new Error('Anúncio inválido ou frequência desconhecida');
+  const price=n=>'$'+Number(n).toLocaleString('en-US');
+  const compensation=j.rateMin==null || j.rateMax==null?'':`${price(j.rateMin)}${j.rateMin===j.rateMax?'':' - '+price(j.rateMax)}/${units[j.payRateFrequency]}`;
+  return {id:j.listingId,title:j.title.trim(),platform:'Mercor',location:j.location || 'Localização não informada',workArrangement:j.workArrangement,compensation,skills:[],sourceUrl:'https://work.mercor.com/explore?listingId='+encodeURIComponent(j.listingId)};
+});
+if(new Set(jobs.map(j=>j.id)).size!==jobs.length) throw new Error('IDs duplicados: catálogo preservado.');
+const path=new URL('../public/jobs.json',import.meta.url);
+const data=JSON.parse(await readFile(path,'utf8'));
+data.sources ??= {micro1:{updatedAt:data.updatedAt,method:data.collectionMethod || 'manual-browser'}};
+data.sources.Mercor={updatedAt:new Date().toISOString(),method:'public-html',url:'https://work.mercor.com/explore',count:jobs.length};
+data.jobs=[...data.jobs.filter(j=>j.platform!=='Mercor'),...jobs];
+data.source='Catálogo agregado: micro1 e Mercor';
+data.coverage='micro1: 362 anúncios observados na sessão. Mercor: anúncios ativos disponíveis no HTML público consultado. Atualização manual; links de indicação Mercor pendentes.';
+const tmp=new URL('../public/jobs.json.tmp',import.meta.url);
+await writeFile(tmp,JSON.stringify(data,null,2)+'\n'); await rename(tmp,path);
+console.log(`Mercor: ${jobs.length} anúncios importados; ${data.jobs.length} anúncios no total.`);

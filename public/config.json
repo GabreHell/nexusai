@@ -1,0 +1,29 @@
+{
+  "micro1Referral": "https://refer.micro1.ai/referral/jobs?referralCode=67bd9910-a30e-4f63-9df4-3069c110f322&utm_source=referral&utm_medium=share&utm_campaign=job_referral",
+  "otherPlatforms": {
+    "Revelo": {
+      "url": "https://careers.revelo.com/",
+      "referral": false,
+      "description": "Ver oportunidades na Revelo"
+    },
+    "G2i": {
+      "url": "https://jobs.ashbyhq.com/g2i?departmentId=d81d821a-3e5b-414c-bb90-65dd55da32ba",
+      "description": "Ver oportunidades na G2i"
+    },
+    "Cocient": {
+      "url": "https://cocient.com/?ref=BVND46GH",
+      "referral": true,
+      "description": "Acessar com link de indicação"
+    },
+    "Strider": {
+      "url": "https://app.onstrider.com/refer/gabriel_m3jiuv",
+      "referral": true,
+      "description": "Acessar com link de indicação"
+    },
+    "Torc": {
+      "url": "https://platform.torc.dev",
+      "description": "Acessar a plataforma Torc"
+    }
+  },
+  "handshakeReferral": "https://joinhandshake.com/move-program/referral?referralCode=8EF767&utm_source=referral"
+}
